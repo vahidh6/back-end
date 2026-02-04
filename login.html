@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>صفحه ورود</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #45a049; }
+        .message { margin-top: 10px; color: red; }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>ورود به سیستم</h2>
+    <input type="text" id="username" placeholder="نام کاربری">
+    <input type="password" id="password" placeholder="رمز عبور">
+    <button onclick="login()">ورود</button>
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+async function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = '';
+
+    if (!username || !password) {
+        messageDiv.textContent = 'نام کاربری و رمز عبور الزامی هستند';
+        return;
+    }
+
+    try {
+        const res = await fetch('http://localhost:5000/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            messageDiv.style.color = 'green';
+            messageDiv.textContent = 'ورود موفق!';
+
+            // ذخیره توکن در localStorage (در صورت نیاز)
+            localStorage.setItem('token', data.token);
+            console.log('JWT Token:', data.token);
+
+            // بعد از ورود می‌توان کاربر را به داشبورد هدایت کرد
+            // window.location.href = '/dashboard.html';
+        } else {
+            messageDiv.style.color = 'red';
+            messageDiv.textContent = data.message;
+        }
+
+    } catch (error) {
+        console.error('خطا در اتصال به سرور:', error);
+        messageDiv.style.color = 'red';
+        messageDiv.textContent = 'خطا در اتصال به سرور';
+    }
+}
+</script>
+
+</body>
+</html>
