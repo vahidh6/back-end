@@ -65,20 +65,6 @@ app.use('*', (req, res) => {
     });
 });
 
-// راه‌اندازی سرور - این خط را اضافه کنید
-const PORT = process.env.PORT || 5000;
-
-
-connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`
-        🚀 سرور در حال اجرا است:
-        📍 پورت: ${PORT}
-        🌐 آدرس: http://localhost:${PORT}
-        📊 وضعیت: http://localhost:${PORT}/api/health
-        🗄️ محیط: ${process.env.NODE_ENV || 'development'}
-        `);
-    });
-}).catch(err => {
-    console.error('❌ خطا در راه‌اندازی سرور:', err);
-});
+// --- هیچ app.listen ای در این فایل نیست ---
+// فقط app export می‌شود
+module.exports = app;
