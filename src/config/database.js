@@ -1,26 +1,25 @@
 // src/config/database.js
 const mongoose = require('mongoose');
-require('dotenv').config();
-const mongoURI = 'mongodb+srv://shop-etahadiah:Wahid12345%40%40@cluster0.peaufzv.mongodb.net/mobile-management?retryWrites=true&w=majority';
 
 const connectDB = async () => {
   try {
-    console.log('🔌 در حال اتصال به MongoDB...');
+    console.log('🔌 Connecting to MongoDB...');
 
-    const mongoURI = process.env.MONGO_URI;
-    if (!mongoURI) throw new Error('MONGO_URI در فایل .env تعریف نشده است!');
+    const mongoURI = process.env.MONGODB_URI;
+    if (!mongoURI) {
+      console.error('❌ MONGODB_URI is not defined in environment variables');
+      return;
+    }
 
     await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // کاهش زمان انتظار
+      serverSelectionTimeoutMS: 5000,
     });
 
-    console.log('✅ MongoDB connected successfully');
+    console.log('✅ MongoDB connected');
     console.log(`📊 Database: ${mongoose.connection.db.databaseName}`);
   } catch (error) {
-    console.error('❌ MongoDB connection failed:', error.message);
-    console.log('⚠️ در حال استفاده از حالت تست (بدون دیتابیس)...');
+    console.error('❌ MongoDB connection error:', error.message);
+    // ⛔️ هیچ exit نکن! Render نباید اپ رو از دست بده
   }
 };
 
