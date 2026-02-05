@@ -1,97 +1,201 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-    <meta charset="UTF-8">
-    <title>صفحه ورود</title>
-    <style>
-        body {
-            font-family: Tahoma, sans-serif;
-            background-color: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .login-container {
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 300px;
-            text-align: center;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover { background-color: #45a049; }
-        .message { margin-top: 10px; color: red; }
-    </style>
+<meta charset="UTF-8">
+<title>پنل مدیریت و دوکاندار</title>
+<style>
+body { font-family: Tahoma, sans-serif; background:#f5f5f5; display:flex; flex-direction:column; align-items:center; padding:20px; }
+.container { background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,.1); width:400px; margin-bottom:20px; }
+h3, h4 { text-align:center; }
+input, button, select { width:100%; padding:8px; margin:6px 0; border-radius:5px; font-size:14px; }
+input, select { border:1px solid #ccc; }
+button { border:none; cursor:pointer; background:#4CAF50; color:#fff; }
+button:hover { background:#45a049; }
+.blue { background:#2196F3; color:#fff; }
+.blue:hover { background:#1976D2; }
+.message { font-size:14px; margin-top:6px; }
+pre { background:#eee; padding:10px; max-height:200px; overflow:auto; font-size:12px; text-align:left; }
+</style>
 </head>
 <body>
 
-<div class="login-container">
-    <h2>ورود به سیستم</h2>
-    <input type="text" id="username" placeholder="نام کاربری">
-    <input type="password" id="password" placeholder="رمز عبور">
-    <button onclick="login()">ورود</button>
-    <div class="message" id="message"></div>
+<!-- فرم ورود -->
+<div class="container">
+    <h3>ورود</h3>
+    <input id="username" placeholder="نام کاربری">
+    <input id="password" type="password" placeholder="رمز عبور">
+    <button onclick="login()">🔐 ورود</button>
+    <div class="message" id="loginMsg"></div>
+</div>
+
+<!-- عملیات دوکاندار -->
+<div class="container">
+    <h3>عملیات دوکاندار</h3>
+    <button class="blue" onclick="checkPurchases()">🏪 مشاهده خریدها</button>
+    <button class="blue" onclick="checkHealth()">❤️ سلامت سرور</button>
+
+    <h4>ثبت خرید جدید</h4>
+    <input id="imei1" placeholder="IMEI موبایل">
+    <input id="brand" placeholder="برند موبایل">
+    <input id="price" placeholder="قیمت خرید">
+    <input id="sellerName" placeholder="نام فروشنده">
+    <input id="sellerPhone" placeholder="شماره تماس">
+    <input id="sellerAddress" placeholder="آدرس">
+    <input id="sellerFatherName" placeholder="نام پدر فروشنده">
+    <input type="file" id="sellerPhoto">
+    <input type="file" id="idCardPhoto">
+    <input type="file" id="thumbPhoto">
+    <button onclick="createPurchase()">➕ ثبت خرید</button>
+</div>
+
+<!-- فرم ثبت دوکاندار جدید (فقط ادمین) -->
+<div class="container">
+    <h3>ثبت دوکاندار جدید (ادمین)</h3>
+    <input id="newUsername" placeholder="نام کاربری">
+    <input id="newPassword" type="password" placeholder="رمز عبور">
+    <input id="fullName" placeholder="نام کامل مالک دوکان">
+    <input id="shopName" placeholder="نام دوکان">
+    <input id="shopPhone" placeholder="شماره تماس دوکان">
+    <input id="shopAddress" placeholder="آدرس دوکان">
+    <button onclick="createShop()">➕ ثبت دوکاندار</button>
+    <div class="message" id="shopMsg"></div>
+</div>
+
+<!-- پیام و نتیجه API -->
+<div class="container">
+    <div class="message" id="msg"></div>
+    <pre id="result"></pre>
 </div>
 
 <script>
+const BASE_URL = 'http://localhost:5000';
+
+// لاگین و ذخیره JWT
 async function login() {
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = '';
+    if(!username || !password){ msg.style.color='red'; msg.textContent='نام کاربری و رمز عبور الزامی است'; return; }
 
-    const messageDiv = document.getElementById('message');
-    messageDiv.textContent = '';
+    try{
+        const res = await fetch(`${BASE_URL}/api/auth/login`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({username,password})
+        });
+        const data = await res.json();
+        if(res.ok && data.token){
+            localStorage.setItem('token', data.token);
+            msg.style.color='green';
+            msg.textContent='ورود موفق ✅';
+        } else {
+            msg.style.color='red';
+            msg.textContent = data.message || 'خطا در ورود';
+        }
+    } catch(err){
+        msg.style.color='red';
+        msg.textContent='خطا در اتصال به سرور';
+        console.error(err);
+    }
+}
 
-    if (!username || !password) {
-        messageDiv.textContent = 'نام کاربری و رمز عبور الزامی هستند';
+// فراخوانی API عمومی
+async function callAPI(path,title,auth=true,method='GET',body=null,isFormData=false){
+    const msg = document.getElementById('msg');
+    const resBox = document.getElementById('result');
+    msg.textContent=''; resBox.textContent='';
+    const headers = {};
+    if(auth){
+        const token = localStorage.getItem('token');
+        if(!token){ msg.style.color='red'; msg.textContent='ابتدا لاگین کنید'; return; }
+        headers['Authorization']='Bearer '+token;
+    }
+    if(!isFormData) headers['Content-Type']='application/json';
+    try{
+        const res = await fetch(`${BASE_URL}${path}`,{
+            method, headers, body:isFormData?body:body?JSON.stringify(body):null
+        });
+        const data = await res.json();
+        msg.style.color = res.ok?'green':'red';
+        msg.textContent = res.ok?`${title} ✅`:`${title} ❌`;
+        resBox.textContent = JSON.stringify(data,null,2);
+    } catch(err){
+        msg.style.color='red';
+        msg.textContent='خطا در اتصال به API';
+        console.error(err);
+    }
+}
+
+// مشاهده خریدهای دوکاندار
+function checkPurchases(){ callAPI('/api/purchases/my-purchases','خریدهای دوکاندار'); }
+
+// تست سلامت سرور
+function checkHealth(){ callAPI('/api/health','سلامت سرور',false); }
+
+// ثبت خرید جدید
+async function createPurchase(){
+    const imei1 = document.getElementById('imei1').value.trim();
+    const brand = document.getElementById('brand').value.trim();
+    const price = document.getElementById('price').value.trim();
+    const sellerName = document.getElementById('sellerName').value.trim();
+    const sellerPhone = document.getElementById('sellerPhone').value.trim();
+    const sellerAddress = document.getElementById('sellerAddress').value.trim();
+    const sellerFatherName = document.getElementById('sellerFatherName').value.trim();
+    const sellerPhoto = document.getElementById('sellerPhoto').files[0];
+    const idCardPhoto = document.getElementById('idCardPhoto').files[0];
+    const thumbPhoto = document.getElementById('thumbPhoto').files[0];
+
+    if(!imei1 || !brand || !price || !sellerName || !sellerPhone || !sellerAddress || !sellerFatherName){
+        const msg = document.getElementById('msg');
+        msg.style.color='red';
+        msg.textContent='تمام فیلدهای ضروری الزامی هستند';
         return;
     }
 
-    try {
-        const res = await fetch('http://localhost:5000/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
+    const formData = new FormData();
+    formData.append('imei1',imei1);
+    formData.append('brand',brand);
+    formData.append('price',price);
+    formData.append('sellerName',sellerName);
+    formData.append('sellerPhone',sellerPhone);
+    formData.append('sellerAddress',sellerAddress);
+    formData.append('sellerFatherName',sellerFatherName);
+    if(sellerPhoto) formData.append('sellerPhoto',sellerPhoto);
+    if(idCardPhoto) formData.append('idCardPhoto',idCardPhoto);
+    if(thumbPhoto) formData.append('thumbPhoto',thumbPhoto);
 
-        const data = await res.json();
+    await callAPI('/api/purchases','ثبت خرید جدید',true,'POST',formData,true);
+}
 
-        if (data.success) {
-            messageDiv.style.color = 'green';
-            messageDiv.textContent = 'ورود موفق!';
+// ثبت دوکاندار جدید (ادمین)
+async function createShop(){
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value.trim();
+    const fullName = document.getElementById('fullName').value.trim();
+    const shopName = document.getElementById('shopName').value.trim();
+    const shopPhone = document.getElementById('shopPhone').value.trim();
+    const shopAddress = document.getElementById('shopAddress').value.trim();
+    const msg = document.getElementById('shopMsg');
+    msg.textContent = '';
 
-            // ذخیره توکن در localStorage (در صورت نیاز)
-            localStorage.setItem('token', data.token);
-            console.log('JWT Token:', data.token);
-
-            // بعد از ورود می‌توان کاربر را به داشبورد هدایت کرد
-            // window.location.href = '/dashboard.html';
-        } else {
-            messageDiv.style.color = 'red';
-            messageDiv.textContent = data.message;
-        }
-
-    } catch (error) {
-        console.error('خطا در اتصال به سرور:', error);
-        messageDiv.style.color = 'red';
-        messageDiv.textContent = 'خطا در اتصال به سرور';
+    if(!username || !password || !fullName || !shopName || !shopPhone || !shopAddress){
+        msg.style.color='red';
+        msg.textContent='تمام فیلدها الزامی هستند';
+        return;
     }
+
+    const token = localStorage.getItem('token');
+    if(!token){ msg.style.color='red'; msg.textContent='ابتدا لاگین کنید'; return; }
+
+    await callAPI('/api/admin/shops','ثبت دوکاندار جدید',true,'POST',{
+        username,
+        password,
+        fullName,
+        shopName,
+        phone: shopPhone,
+        address: shopAddress
+    });
 }
 </script>
 

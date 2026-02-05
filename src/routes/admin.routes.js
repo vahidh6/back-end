@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { createShop } = require('../controllers/admin.controller');
 const {
     getAllShops,
     approveShop,
@@ -13,6 +14,9 @@ const { authMiddleware, requireRole } = require('../middleware/auth');
 
 // همه routeها نیاز به نقش ادمین دارند
 router.use(authMiddleware, requireRole('admin'));
+
+// مسیر POST برای ایجاد دوکاندار جدید
+router.post('/shops', createShop);
 
 // مدیریت دوکانداران
 router.get('/shops', getAllShops);

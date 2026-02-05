@@ -208,6 +208,39 @@ exports.getAllPurchases = async (req, res) => {
         });
     }
 };
+// ایجاد دوکاندار جدید
+exports.createShop = async (req, res) => {
+    try {
+        const { username, password, fullName, shopName, phone, address } = req.body;
+
+        if(!username || !password || !shopName){
+            return res.status(400).json({ success:false, message:'فیلدهای ضروری را پر کنید' });
+        }
+
+        // بررسی وجود نام کاربری
+        const existingUser = await User.findOne({ username });
+        if(existingUser){
+            return res.status(400).json({ success:false, message:'نام کاربری قبلاً وجود دارد' });
+        }
+
+        const newShop = await User.create({
+            username,
+            password, // ⚠️ در عمل حتما hash شود
+            role: 'shopOwner',
+            fullName,
+            shopName,
+            phone,
+            address,
+            status: 'pending'
+        });
+
+        res.status(201).json({ success:true, message:'دوکاندار ثبت شد', data:newShop });
+
+    } catch (err) {
+        console.error('خطا در ثبت دوکاندار:', err);
+        res.status(500).json({ success:false, message:'خطا در ثبت دوکاندار' });
+    }
+};
 
 // آمار کلی سیستم
 exports.getSystemStats = async (req, res) => {
