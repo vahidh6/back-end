@@ -17,68 +17,62 @@ const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
-// میدلورهای امنیتی
+/* ================== Middlewares ================== */
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 
-// پردازش JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// مسیرهای استاتیک
+/* ================== Static files ================== */
 const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// مسیرهای API
+/* ================== Routes ================== */
 app.use('/api/auth', authRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Route سلامت سیستم
+/* ================== Health check ================== */
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        service: 'Mobile Purchase Management System'
-    });
+  res.json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    service: 'Mobile Purchase Management System'
+  });
 });
 
-// Route اصلی
+/* ================== Root ================== */
 app.get('/', (req, res) => {
-    res.json({
-        message: 'خوش آمدید به سیستم مدیریت خرید موبایل',
-        endpoints: {
-            auth: '/api/auth',
-            purchases: '/api/purchases',
-            admin: '/api/admin',
-            health: '/api/health'
-        }
-    });
+  res.json({
+    message: 'خوش آمدید به سیستم مدیریت خرید موبایل',
+    endpoints: {
+      auth: '/api/auth',
+      purchases: '/api/purchases',
+      admin: '/api/admin',
+      health: '/api/health'
+    }
+  });
 });
 
-// صفحه 404
+/* ================== 404 ================== */
 app.use('*', (req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'مسیر یافت نشد'
-    });
+  res.status(404).json({
+    success: false,
+    message: 'مسیر یافت نشد'
+  });
 });
 
-// راه‌اندازی سرور - این خط را اضافه کنید
+/* ================== Start Server ================== */
 const PORT = process.env.PORT || 5000;
 
-
-connectDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`
-        🚀 سرور در حال اجرا است:
-        📍 پورت: ${PORT}
-        🌐 آدرس: http://localhost:${PORT}
-        📊 وضعیت: http://localhost:${PORT}/api/health
-        🗄️ محیط: ${process.env.NODE_ENV || 'development'}
-        `);
-    });
-}).catch(err => {
-    console.error('❌ خطا در راه‌اندازی سرور:', err);
+// 🔥 اول سرور بالا می‌آید (خیلی مهم برای Render)
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// 🔗 اتصال دیتابیس جداگانه
+connectDB()
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
