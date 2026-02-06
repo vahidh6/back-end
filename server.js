@@ -12,7 +12,7 @@ connectDB().then(() => {
         🚀 سرور در حال اجرا است:
         📍 پورت: ${PORT}
         🌐 آدرس: http://localhost:${PORT}
-        📊 وضعیت: http://localhost:${PORT}/api/health
+           وضعیت: http://localhost:${PORT}/api/health
         🗄️ محیط: ${process.env.NODE_ENV || 'development'}
         `);
     });
